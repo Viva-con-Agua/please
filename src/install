@@ -4,7 +4,7 @@ update(){
     git pull
 }
 
-install_donmain_deploy() {
+install_domain_deploy() {
     git clone git@github.com:Viva-con-Agua/domain-deploy.git
 }
 

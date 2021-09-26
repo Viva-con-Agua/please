@@ -1,11 +1,8 @@
 #!/bin/bash
 
-init_env() {
-        echo 
-    }
-
 init_handler() {
     echo "Init please script."
+    echo "Create .env file for environment variables."
     echo "Add volumes path: "
     read volumes
     echo "volumes="${volumes} > .env
