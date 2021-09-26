@@ -1,0 +1,21 @@
+#!/bin/bash
+
+update(){
+    git pull
+}
+
+install_donmain_deploy() {
+    git clone git@github.com:Viva-con-Agua/domain-deploy.git
+}
+
+print_help_install() {
+    echo "only provide services: "
+    echo "domain"
+}
+
+install_helper() {
+    case $1 in
+        domain) install_donmain_deploy;;
+        *) print_help_install
+esac
+}

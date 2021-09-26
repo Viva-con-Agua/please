@@ -1,0 +1,35 @@
+#!/bin/bash
+
+
+
+source ${PWD}/config/helper
+
+
+
+create_network(){
+    cfg.parser './config/network.ini' && cfg.section.${1} &&
+    docker network create -d bridge --subnet ${subnet} ${name} || true
+    
+}
+
+delete_network(){
+    cfg.parser './config/network.ini' && cfg.section.${1} &&
+    docker network rm ${name}
+}
+
+info_network(){
+    echo "Name: ";
+    docker network inspect domain_net --format "{{.Name}}"; 
+    echo "Subnet: ";
+    docker network inspect domain_net --format "{{range  .IPAM.Config}}{{println .Subnet}}{{end}}";
+    echo "Container Names and IPv4Addresses: ";
+    docker network inspect domain_net --format "{{range  .Containers}}{{println .Name .IPv4Address}}{{end}}"; 
+}
+
+network_handler () {
+    case $1 in
+        create) create_network $2;;
+        delete) delete_network $2;;
+        info) info_network $2;;
+    esac
+}
