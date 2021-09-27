@@ -3,10 +3,11 @@
 init_handler() {
     echo "Init please script."
     echo "Create .env file for environment variables."
-    echo "Add volumes path: "
-    read volumes
-    echo "volumes="${volumes} > .env
-    echo "Add repos path: "
-    read repos 
-    echo "repos="${repos} >> .env
+    echo "Add workdir path: "
+    read workdir
+    mkdir -p workdir
+    echo "# work directories"
+    echo "work_dir=${workdir}"
+    echo "volumes_dir=${workdir}/volumes" > .env
+    echo "repos_dir="${workdir}/repos >> .env
 }

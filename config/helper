@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#cfg={}
 cfg.parser () {
     fixed_file=$(cat $1 | sed 's/ = /=/g')  # fix ' = ' to be '='
     IFS=$'\n' && ini=( $fixed_file )              # convert to line-array
@@ -14,4 +13,5 @@ cfg.parser () {
     ini[0]=''                                # remove first element
     ini[${#ini[*]} + 1]='}'                  # add the last brace
     eval "$(echo "${ini[*]}")"               # eval the result
+    echo "${ini[*]}"
 }

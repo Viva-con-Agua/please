@@ -2,16 +2,21 @@
 
 print_help_please(){
     echo "Commands: "
-    echo "  install        # install deployment scripts."
+    echo "  service        # install deployment scripts."
     echo "  network        # handles docker network." 
     echo "  help           # print this page."
 }
 
 case $1 in
-    install) source ./install && install_helper;;
-    network) source ./network && network_handler "${@:2}";;
-    init) source ./src/init && init_handler;;
-    help) print_help_please;;
-    *) print_help_please
+    service) 
+        source ${PWD}/src/service && service_handler "${@:2}";;
+    network) 
+        source ${PWD}/src/network && network_handler "${@:2}";;
+    init) 
+        source ${PWD}/src/init && init_handler;;
+    help) 
+        print_help_please;;
+    *) 
+        print_help_please
 esac
 

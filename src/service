@@ -1,0 +1,33 @@
+#!/bin/bash
+
+source ${PWD}/config/helper
+source .env
+
+install_service() {
+    cfg.parser './config/services.ini' && cfg.section.${1} &&
+    cd $repos_dir &&
+    git clone $repo
+    cd $repo_name
+
+}
+
+test_service(){
+    cfg.parser './config/services.ini' && cfg.section.${1} 
+    echo $repo
+}
+
+print_help_install() {
+    echo "only provide services: "
+    echo "domain"
+}
+
+service_handler() {
+    case $1 in
+        install) 
+            install_donmain_deploy $2;;
+        test)
+            test_service $2;;
+        *) 
+            print_help_install
+    esac
+}
