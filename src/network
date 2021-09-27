@@ -9,7 +9,7 @@ source ${PWD}/config/helper
 create_network(){
     cfg.parser './config/network.ini' && cfg.section.${1} &&
     docker network create -d bridge --subnet ${subnet} ${name} || true
-    
+
 }
 
 delete_network(){
@@ -17,13 +17,27 @@ delete_network(){
     docker network rm ${name}
 }
 
-info_network(){
+
+info_print(){
+    cfg.section.${1} &&
     echo "Name: ";
-    docker network inspect domain_net --format "{{.Name}}"; 
+    docker network inspect ${name} --format "{{.Name}}"; 
     echo "Subnet: ";
-    docker network inspect domain_net --format "{{range  .IPAM.Config}}{{println .Subnet}}{{end}}";
+    docker network inspect ${name} --format "{{range  .IPAM.Config}}{{println .Subnet}}{{end}}";
     echo "Container Names and IPv4Addresses: ";
-    docker network inspect domain_net --format "{{range  .Containers}}{{println .Name .IPv4Address}}{{end}}"; 
+    docker network inspect ${name} --format "{{range  .Containers}}{{println .Name .IPv4Address}}{{end}}"; 
+}
+
+info_network(){
+    cfg.parser './config/network.ini' &&
+    if [ -z ${1+x} ]; then
+        for v in ${section[*]}
+        do
+            info_print $v
+        done
+    else
+        info_print $1
+    fi
 }
 
 network_handler () {

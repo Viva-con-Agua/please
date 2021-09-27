@@ -3,17 +3,55 @@
 source ${PWD}/config/helper
 source .env
 
+load_config(){
+    cfg.parser './config/services.ini' && 
+        if [ "$(type -t cfg.section.${1})" = 'function' ]; then
+            cfg.section.${1}
+        else
+            echo service not found ${1}
+            exit 1
+        fi
+}
+
 install_service() {
     cfg.parser './config/services.ini' && cfg.section.${1} &&
     cd $repos_dir &&
-    git clone $repo
+    if ! [ -d $repo_name ] ; then
+        git clone $repo
+    fi
     cd $repo_name
+    echo deploy_mode=${deploy_mode} > .env
+    IFS=', ' read -r -a array <<< "$networks"
+    for var in ${array[*]}
+    do
+        net="${1}_net_ip"
+        if ! grep -q $net .env ; then
+            echo ${net}=${!net} >> .env
+        fi
+    done
+    ./please install $work_dir develop
+}
+
+up_service(){
+    cfg.parser './config/services.ini' && cfg.section.${1} &&
+    cd $repos_dir/$repo_name &&
+    ./please up $1
+}
+
+add_service(){
+    cfg.parser './config/services.ini' && cfg.section.${1} &&
+    cd $repos_dir/$repo_name &&
+    cfg.section.${2} &&
+    ./please add 
 
 }
 
+
+
 test_service(){
-    cfg.parser './config/services.ini' && cfg.section.${1} 
-    echo $repo
+    cfg.parser './config/services.ini' && cfg.section.${1} &&
+    IFS=', ' read -r -a array <<< "$networks"
+    echo ${array[*]}
 }
 
 print_help_install() {
@@ -24,7 +62,9 @@ print_help_install() {
 service_handler() {
     case $1 in
         install) 
-            install_donmain_deploy $2;;
+            install_service $2;;
+        up)
+            up_service $2;;
         test)
             test_service $2;;
         *) 
