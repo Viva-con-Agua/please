@@ -6,9 +6,21 @@ source ${PWD}/config/helper
 
 
 
-create_network(){
+create_network_function(){
     cfg.parser './config/network.ini' && cfg.section.${1} &&
     docker network create -d bridge --subnet ${subnet} ${name} || true
+
+}
+create_network(){
+    cfg.parser './config/network.ini' &&
+    if [ -z ${1+x} ]; then
+        for v in ${section[*]}
+        do
+            create_network_function $v
+        done
+    else
+        create_network_function $1
+    fi
 
 }
 
