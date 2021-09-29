@@ -1,7 +1,0 @@
-Meine erste Anstellung war das umstellen eine Statiksoftware für einen externen Dienstleister, der diese übernehmen wollte. Ich habe in diesem Projekt als einziger Entwickler gearbeitet und bis zum Verkauf gebracht. Danach habe ich 2 Jahre an der Humboldt-Universität zu Berlin an Software im ehrenamtliches
-
-Bei meiner ersten Anstellung bei HarzerStatik ging es darum eine Softwarearchitektur so an zu passen, dass die Software an ein drittes Unternehmen verkauft werden konnte. 
-Nach Verkauf habe ich an der Humboldt Universität zu Berlin 2 Jahre an Software für ehrenamtliches Engagement (geforscht) und mich vor allem mit der Architektur für NGOs beschäftigt.
-Dann meine Arbeit bei Viva-con-Agua selbst. 
-Ich habe in meiner Freizeit viel mit Verschlüsselung und IT-Security verbracht und mit eine Menge Programmierspachen beigebracht. Dazu gehören Go, Javascript, Java, Scala, Python, C, C++, Virtualbasic( will ich nie wieder machen) ... .
-
