@@ -1,3 +1,3 @@
 #!/bin/bash
 
-complete -W "install network help" please
+complete -W "install network service help" please

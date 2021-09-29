@@ -18,8 +18,6 @@ cfg.parser () {
     ini[0]=''                                # remove first element
     ini[${#ini[*]} + 1]='}'                  # add the last brace
     eval "$(echo "${ini[*]}")"               # eval the result
-
-
 }
 
 

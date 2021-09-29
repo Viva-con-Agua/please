@@ -38,20 +38,24 @@ up_service(){
     ./please up $1
 }
 
-add_service(){
-    cfg.parser './config/services.ini' && cfg.section.${1} &&
+link_service(){
+    cfg.parser './config/services.ini' && cfg.section.${2} &&
+    croute=$route && cfg.section.${1} &&
+    cfg.parser './config/network.ini' && cfg.section.${1} &&
     cd $repos_dir/$repo_name &&
-    cfg.section.${2} &&
-    ./please add 
-
+    link="${2}_ip"
+    ./please link $croute ${!link}
 }
 
 
 
 test_service(){
-    cfg.parser './config/services.ini' && cfg.section.${1} &&
-    IFS=', ' read -r -a array <<< "$networks"
-    echo ${array[*]}
+    cfg.parser './config/services.ini'
+    echo $(cfg.section.${1})
+    cfg_network=$(cfg.parser './config/network.ini')
+    cfg_network.section.${1}
+    echo $self_ip
+    echo $repo_name
 }
 
 print_help_install() {
@@ -67,6 +71,8 @@ service_handler() {
             up_service $2;;
         test)
             test_service $2;;
+        link)
+            link_service $2 $3;;
         *) 
             print_help_install
     esac
