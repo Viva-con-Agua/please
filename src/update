@@ -1,0 +1,14 @@
+#!/bin/bash
+
+update_self() {
+    git pull
+}
+
+update_handler(){
+    if [ -z ${1} ]; then
+        update_self
+    else
+        echo todo for $1
+    fi
+
+}

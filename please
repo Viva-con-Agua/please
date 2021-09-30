@@ -14,6 +14,8 @@ case $1 in
         source ${PWD}/src/network && network_handler "${@:2}";;
     install) 
         source ${PWD}/src/install && install_handler;;
+    update)
+        source ${PWD}/src/update && update_handler "${@:2}";;
     help) 
         print_help_please;;
     *) 
