@@ -15,21 +15,24 @@ load_config(){
 
 install_service() {
     cfg.parser './config/services.ini' && cfg.section.${1} &&
+    cfg_path=${PWD}/config
     cd $repos_dir &&
     if ! [ -d $repo_name ] ; then
         git clone $repo
     fi
     cd $repo_name
     echo deploy_mode=${deploy_mode} > .env
-    IFS=', ' read -r -a array <<< "$networks"
-    for var in ${array[*]}
-    do
-        net="${1}_net_ip"
-        if ! grep -q $net .env ; then
-            echo ${net}=${!net} >> .env
-        fi
-    done
-    ./please install $work_dir develop
+ #   IFS=', ' read -r -a array <<< "$networks"
+ #   for var in ${array[*]}
+ #   do
+ #       net="${1}_ip"
+ #       if ! grep -q $net .env ; then
+ #           echo ${!net}
+ #           echo ${net}
+ #           echo ${net}=${!net} >> .env
+ #       fi
+ #   done
+    ./please install $cfg_path $work_dir
 }
 
 up_service(){
@@ -40,11 +43,12 @@ up_service(){
 
 link_service(){
     cfg.parser './config/services.ini' && cfg.section.${2} &&
-    croute=$route && cfg.section.${1} &&
-    cfg.parser './config/network.ini' && cfg.section.${1} &&
+    croute=$route 
+    temp="${1}_net_ip"
+    link=${!temp}
+    cfg.section.${1} &&
     cd $repos_dir/$repo_name &&
-    link="${2}_ip"
-    ./please link $croute ${!link}
+    ./please link $croute $link
 }
 
 
@@ -52,10 +56,15 @@ link_service(){
 test_service(){
     cfg.parser './config/services.ini'
     echo $(cfg.section.${1})
-    cfg_network=$(cfg.parser './config/network.ini')
-    cfg_network.section.${1}
-    echo $self_ip
-    echo $repo_name
+    output=$(awk -F ' *= *' '{ if ($1 ~ /^\[/) printf "\n" $1; else if ($1 !~ /^$/) printf $1 "="  $2  }' config/network.ini | grep "\[domain\]")
+    echo $output
+    IFS=', ' read -r -a section <<< "$output"
+    for var in ${section[*]}
+    do
+        echo $var
+    done
+
+    
 }
 
 print_help_install() {

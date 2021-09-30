@@ -4,7 +4,7 @@ section=""
 
 cfg.parser () {
     temp=$(awk -F '[,[:blank:]]' '{ if ($1 ~ /^\[/) section=$1; print section }' $1| tr ' ' '\n' | sort -u | tr '\n' ' ' | tr '[' ' ' | tr ']' ',')
-    IFS=', ' read -r -a section <<< "$temp"
+    IFS=', ' read -r -a sections <<< "$temp"
 
     fixed_file=$(cat $1 | sed 's/ = /=/g')  # fix ' = ' to be '='
     IFS=$'\n' && ini=( $fixed_file )              # convert to line-array
@@ -21,4 +21,3 @@ cfg.parser () {
 }
 
 
-    
