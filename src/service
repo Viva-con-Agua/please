@@ -22,16 +22,6 @@ install_service() {
     fi
     cd $repo_name
     echo deploy_mode=${deploy_mode} > .env
- #   IFS=', ' read -r -a array <<< "$networks"
- #   for var in ${array[*]}
- #   do
- #       net="${1}_ip"
- #       if ! grep -q $net .env ; then
- #           echo ${!net}
- #           echo ${net}
- #           echo ${net}=${!net} >> .env
- #       fi
- #   done
     ./please install $cfg_path $work_dir
 }
 
@@ -42,13 +32,10 @@ up_service(){
 }
 
 link_service(){
-    cfg.parser './config/services.ini' && cfg.section.${2} &&
-    croute=$route 
-    temp="${1}_net_ip"
-    link=${!temp}
-    cfg.section.${1} &&
+    cfg.parser './config/services.ini' && cfg.section.${1} &&
+    cfg_path=${PWD}/config
     cd $repos_dir/$repo_name &&
-    ./please link $croute $link
+    ./please link $cfg_path $2
 }
 
 
