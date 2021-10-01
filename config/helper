@@ -20,4 +20,22 @@ cfg.parser () {
     eval "$(echo "${ini[*]}")"               # eval the result
 }
 
+load_config_service(){
+    cfg.parser './config/services.ini' && 
+        if [ "$(type -t cfg.section.${1})" = 'function' ]; then
+            cfg.section.${1}
+        else
+            echo service not found ${1}
+            exit 1
+        fi
+}
 
+load_config_network(){
+    cfg.parser './config/network.ini' && 
+        if [ "$(type -t cfg.section.${1})" = 'function' ]; then
+            cfg.section.${2}
+        else
+            echo service not found ${1}
+            exit 1
+        fi
+}

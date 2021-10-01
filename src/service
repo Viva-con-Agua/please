@@ -3,15 +3,7 @@
 source ${PWD}/config/helper
 source .env
 
-load_config(){
-    cfg.parser './config/services.ini' && 
-        if [ "$(type -t cfg.section.${1})" = 'function' ]; then
-            cfg.section.${1}
-        else
-            echo service not found ${1}
-            exit 1
-        fi
-}
+
 
 install_service() {
     cfg.parser './config/services.ini' && cfg.section.${1} &&
@@ -31,12 +23,7 @@ up_service(){
     ./please up $1
 }
 
-link_service(){
-    cfg.parser './config/services.ini' && cfg.section.${1} &&
-    cfg_path=${PWD}/config
-    cd $repos_dir/$repo_name &&
-    ./please link $cfg_path $2
-}
+
 
 
 
