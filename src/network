@@ -79,6 +79,7 @@ network_handler () {
         delete) delete_network $2;;
         set) set_networks $2;;
         info) info_network $2;;
+        rm) delete_network $2;;
     esac
 }
 

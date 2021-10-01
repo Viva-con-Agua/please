@@ -13,7 +13,7 @@ case $1 in
     network) 
         source ${PWD}/src/network && network_handler "${@:2}";;
     install) 
-        source ${PWD}/src/install && install_handler;;
+        ./src/install.sh "${@:2}";;
     link)
          ./src/link.sh "${@:2}";;
     update)
