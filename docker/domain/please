@@ -1,0 +1,74 @@
+#!/bin/bash
+
+source .env
+
+
+load_config(){
+    current=${PWD}
+    cd $1
+    source helper
+    cfg.parser 'services.ini' && 
+        if [ "$(type -t cfg.section.${2})" = 'function' ]; then
+            cfg.section.${2}
+        else
+            echo service not found ${2}
+            exit 1
+        fi
+    cd $current
+}
+
+# $1=deploy_mode $2=work_dir $3=domain_net_ip
+install_service() {
+    echo deploy_mode=${1} > .env
+    echo subdomain_path=${2}/subdomain >> .env
+    echo "#Path to Cert: only used in live mode"
+    if [ ${1} == "live" ]; then 
+        read -e -p "path: " cert_path
+        echo "cert_path="${cert_path} >> .env
+    fi
+    echo domain_net_ip=${3} >> .env
+    up_service
+}
+
+up_service() {
+    case $deploy_mode in
+        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml up -d ;;
+        *) docker-compose up -d
+    esac
+}
+
+restart_service(){
+    case $deploy_mode in
+        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml restart ;;
+        *) docker-compose restart
+    esac
+}
+
+# $1 == service_name, $2 == domain_net_ip, $3 == route
+link_service() {
+    current=${PWD}
+    case $deploy_mode in
+        live) 
+            cp ./default.conf ${subdomain_path}/${3}.conf && cd ${subdomain_path};
+            sed -i s/{cretificate}/${cert_path}/g ${3}.conf;;
+        *) cp ./default.dev.conf ${subdomain_path}/${3}.conf && cd ${subdomain_path}
+    esac
+    sed -i s/{subdomain}/${3}/g ${3}.conf
+    sed -i s/{proxy_pass}/${2}/g ${3}.conf
+    cd $current
+    echo $1 is successfully link to domain ${3} with IP: $2.
+    restart_service
+}
+
+case $1 in
+    install)
+        install_service "${@:2}";;
+    up)
+        up_service;;
+    restart)
+        restart_service;;
+    link)
+        link_service "${@:2}";;
+    *)
+        echo"TODO"
+esac

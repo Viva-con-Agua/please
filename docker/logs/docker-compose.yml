@@ -1,0 +1,30 @@
+services:
+  service:
+    image: vivaconagua/logs-service:stage
+    restart: always
+    env_file:
+      - .env
+    links:
+      - db:db
+    env_file:
+      - .env
+    networks:
+      api_net:
+        ipv4_address: ${api_net_ip}
+      db_net:
+
+  db:
+    image: mongo
+    restart: unless-stopped
+    volumes: 
+      - ${database_dir}/logs-db/:/data/db/
+    networks:
+      db_net:
+
+networks:
+  api_net:
+    external:
+      name: api_net
+  db_net:
+    external:
+      name: db_net
