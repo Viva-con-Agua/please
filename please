@@ -7,6 +7,23 @@ print_help_please(){
     echo "  help           # print this page."
 }
 
+UPSTREAM='@{u}'
+LOCAL=$(git rev-parse @)
+REMOTE=$(git rev-parse "$UPSTREAM")
+BASE=$(git merge-base @ "$UPSTREAM")
+
+if [ $LOCAL = $BASE ]; then
+    echo "Need to pull"
+    while true; do
+        read -e -i "Y" -p "Do you want to update please? [Y/n]: " yn
+        case $yn in
+            [Nn]* ) break;;
+            [Yy]* ) git pull; break;;
+            * ) echo "Please answer y or n.";;
+        esac
+    done
+fi
+
 case $1 in
     service) 
         source ${PWD}/src/service && service_handler "${@:2}";;
