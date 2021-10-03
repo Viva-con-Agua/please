@@ -43,39 +43,5 @@ install_please() {
     echo please has successfully installed
 }
 
-# $1=repo_dir, $2=repo_name, $3=repo
-go_and_get_repo() {
-   cd $repos_dir &&
-    if ! [ -d $repo_name ] ; then
-        git clone $repo
-    fi
-    cd $repo_name
-}
-
-
-install_domain() {
-    load_config_service domain
-    go_and_get_repo $repos_dir $repo_name $repo
-    ./please install $deploy_mode $work_dir $domain_net_ip
-}
-
-install_api() {
-    load_config_service api
-    go_and_get_repo $repos_dir $repo_name $repo
-    ./please install $deploy_mode $work_dir $domain_net_ip $api_net_ip
-}
-
-install_nats() {
-    load_config_service nats
-    go_and_get_repo $repos_dir $repo_name $repo
-    ./please install $deploy_mode $nats_net_ip
-}
-
-install_logs() {
-    load_config_service logs
-    go_and_get_repo $repos_dir $repo_name $repo
-    ./please install $deploy_mode $work_dir $nats_net_ip 
-}
-
 install_please
 

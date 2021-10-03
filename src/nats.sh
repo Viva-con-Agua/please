@@ -1,5 +1,10 @@
+#!/bin/bash
+docker=./docker/nats
+source ./config/helper
 source .env
-source config/helper
+source src/default.sh
+
+
 print_help(){
     echo "Commands: "
     echo "  install        # install nats-deploy."
@@ -9,21 +14,16 @@ print_help(){
 
 install_service(){
     load_config_service nats
-    cd docker/nats
+    cd $docker
     echo deploy_mode=${api_net_ip} > .env
     echo api_net_ip=${api_net_ip} >> .env
-    up_service
-}
-
-up_service(){
     docker-compose up -d
 }
+
 
 
 case $1 in 
     install) 
         install_service "${@:2}";;
-    up)
-        up_service;;
     *) print_help
 esac

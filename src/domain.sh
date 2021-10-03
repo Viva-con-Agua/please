@@ -1,14 +1,17 @@
 
 #!/bin/bash
-
+docker=./docker/domain
 source ./config/helper
 source .env
+source src/default.sh
+
+current=${PWD}
 
 
 # $1=deploy_mode $2=work_dir $3=domain_net_ip
 install_service() {
     load_config_service domain
-    cd ./docker/domain
+    cd $docker
     echo deploy_mode=${deploy_mode} > .env
     mkdir -p ${workdir}/subdomain
     echo subdomain_path=${work_dir}/subdomain >> .env
@@ -18,13 +21,13 @@ install_service() {
         echo "cert_path="${cert_path} >> .env
     fi
     echo domain_net_ip=${domain_net_ip} >> .env
-    up_service
+    docker-compose up -d
 }
 
 # $1 == service_name, $2 == domain_net_ip, $3 == route
 link_service() {
     load_config_service $1
-    cd ./docker/domain
+    cd $docker
     source .env
     current=${PWD}
     case $deploy_mode in
@@ -40,23 +43,16 @@ link_service() {
     restart_service
 }
 
-up_service() {
-    docker-compose up -d
-}
 
-restart_service() {
-    docker-compose restart
-}
+
 
 case $1 in
     install)
         install_service "${@:2}";;
-    up)
-        up_service;;
-    restart)
-        restart_service;;
+
     link)
         link_service "${@:2}";;
+
     *)
         echo"TODO"
 esac
