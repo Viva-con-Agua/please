@@ -24,10 +24,11 @@ install_please() {
     echo # ask for work_dir path
     read -e -p "Please add a work directory path: " work_dir
     echo # create work_dir folder
-    mkdir -p ${work_dir%/}/volumes ${work_dir%/}/repos ${work_dir%/}/databases
+    mkdir -p ${work_dir%/}/volumes ${work_dir%/}/repos ${work_dir%/}/databases ${work_dir%/}/frontend 
     echo "work_dir=${work_dir%/}" > .env
     echo "volumes_dir=${work_dir%/}/volumes" >> .env
-    echo "repos_dir="${work_dir%/}/repos >> .env   
+    echo "repos_dir="${work_dir%/}/repos >> .env
+    echo "frontend_dir="${work_dir%/}/frontend >> .env
    
     echo # ask for deploy_mode
     while true; do

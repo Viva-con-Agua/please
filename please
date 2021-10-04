@@ -20,6 +20,8 @@ case $1 in
         ./src/nats.sh "${@:2}";;
     logs)
         ./src/logs.sh "${@:2}";;
+    frontend)
+        ./src/frontend.sh "${@:2}";;
     service) 
         source ${PWD}/src/service && service_handler "${@:2}";;
     network) 

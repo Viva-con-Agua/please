@@ -39,3 +39,13 @@ load_config_network(){
             exit 1
         fi
 }
+
+load_config_frontend(){
+    cfg.parser './config/frontend.ini' && 
+        if [ "$(type -t cfg.section.${1})" = 'function' ]; then
+            cfg.section.${2}
+        else
+            echo service not found ${1}
+            exit 1
+        fi
+}
