@@ -1,0 +1,55 @@
+#!/bin/bash
+source ../config/helper
+source .env
+
+
+print_help() {
+echo    Commands: install, link, up, restart, down, logs 
+echo        install         install domain_service
+echo        up              create and start service
+echo        restart         restarts service
+echo        down            delete service docker
+echo        logs            get docker logs
+echo        help            print this page
+}
+
+install_service(){
+    load_config_service nats
+    echo deploy_mode=${api_net_ip} > .env
+    echo api_net_ip=${api_net_ip} >> .env
+    docker-compose up -d
+}
+
+up_service(){
+    docker-compose up 
+}
+
+restart_service(){
+    docker-compose restart
+}
+
+down_service(){
+    docker-compose down   
+}
+
+logs_service(){
+    docker-compose logs "${@:1}" 
+}
+
+
+case $1 in
+    install)
+        install_service "${@:2}";;
+    up)
+        up_service ;;
+    restart)
+        restart_service;;
+    down)
+        down_service;;
+    logs)
+        logs_service "${@:2}";;
+    help)
+        print_helpt;;
+    *)
+        print_help
+esac

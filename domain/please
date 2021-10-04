@@ -1,0 +1,103 @@
+#!/bin/bash
+# DOMAIN DEPLOYMENT
+docker=./docker/domain
+source ../config/helper
+source .env
+source src/default.sh
+
+current=${PWD}
+
+
+print_help() {
+echo    Commands: install, link, up, restart, down, logs 
+echo        install         install domain_service
+echo        link            service_name  connect an service and domain
+echo        up              create and start service
+echo        restart         restarts service
+echo        down            delete service docker
+echo        logs            get docker logs
+echo        help            print this page
+}
+
+
+# install_service
+install_service() {
+    load_config_service domain
+    echo deploy_mode=${deploy_mode} > .env
+    mkdir -p ${workdir}/subdomain
+    echo subdomain_path=${work_dir}/subdomain >> .env
+    echo "#Path to Cert: only used in live mode"
+    if [ ${deploy_mode} == "live" ]; then 
+        read -e -p "path: " cert_path
+        echo "cert_path="${cert_path} >> .env
+    fi
+    echo domain_net_ip=${domain_net_ip} >> .env
+    up_service
+}
+
+# $1 == service_name, $2 == domain_net_ip, $3 == route
+link_service() {
+    load_config_service $1
+    current=${PWD}
+    case $deploy_mode in
+        live) 
+            cp ./default.conf ${subdomain_path}/${2}.conf && cd ${subdomain_path};
+            sed -i s/{cretificate}/${cert_path}/g ${2}.conf;;
+        *) cp ./default.dev.conf ${subdomain_path}/${2}.conf && cd ${subdomain_path}
+    esac
+    sed -i s/{subdomain}/${2}/g ${2}.conf
+    sed -i s/{proxy_pass}/${domain_net_ip}/g ${2}.conf
+    cd $current
+    echo $1 is successfully link to domain ${2} with IP: ${domain_net_ip}.
+    restart_service
+}
+
+
+up_service() {
+    case $deploy_mode in
+        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml up -d ;;
+        *) docker-compose up -d
+    esac
+}
+
+restart_service(){
+    case $deploy_mode in
+        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml restart ;;
+        *) docker-compose restart
+    esac
+}
+
+down_service(){
+    case $deploy_mode in
+        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml down ;;
+        *) docker-compose down
+    esac
+
+}
+
+logs_service() {
+    case $deploy_mode in
+        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml "${@:1}" ;;
+        *) docker-compose logs "${@:1}"
+    esac
+
+}
+
+case $1 in
+    install)
+        install_service "${@:2}";;
+    link)
+        link_service "${@:2}";;
+    up)
+        up_service ;;
+    restart)
+        restart_service;;
+    down)
+        down_service;;
+    logs)
+        logs_service "${@:2}";;
+    help)
+        print_helpt;;
+    *)
+        print_help
+esac
