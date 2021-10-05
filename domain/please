@@ -1,24 +1,22 @@
 #!/bin/bash
 # DOMAIN DEPLOYMENT
-docker=./docker/domain
 source ../config/helper
+touch .env
 source .env
-source src/default.sh
 
 current=${PWD}
 
 
 print_help() {
-echo    Commands: install, link, up, restart, down, logs 
-echo        install         install domain_service
-echo        link            service_name  connect an service and domain
-echo        up              create and start service
-echo        restart         restarts service
-echo        down            delete service docker
-echo        logs            get docker logs
-echo        help            print this page
+echo   " Commands: install, link, up, restart, down, logs "
+echo   "     install         install domain_service"
+echo   "     link            service_name  connect an service and domain"
+echo   "     up              create and start service"
+echo   "     restart         restarts service"
+echo   "     down            delete service docker"
+echo   "     logs            get docker logs"
+echo   "     help            print this page"
 }
-
 
 # install_service
 install_service() {
@@ -97,7 +95,7 @@ case $1 in
     logs)
         logs_service "${@:2}";;
     help)
-        print_helpt;;
+        print_help;;
     *)
         print_help
 esac

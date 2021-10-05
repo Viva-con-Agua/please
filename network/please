@@ -2,8 +2,16 @@
 
 
 
-source ${PWD}/config/helper
+source ../config/helper
 
+
+print_help(){
+    echo "Commands: create, delete, info "
+    echo "  create              create a network"
+    echo "  delete              delete a network"
+    echo "  info                show network infos"
+
+}
 
 
 create_network_function(){
@@ -73,14 +81,13 @@ set_networks(){
     done
 }
 
-network_handler () {
-    case $1 in
-        create) create_network $2;;
-        delete) delete_network $2;;
-        set) set_networks $2;;
-        info) info_network $2;;
-        rm) delete_network $2;;
-    esac
-}
+case $1 in
+    create) create_network $2;;
+    delete) delete_network $2;;
+    set) set_networks $2;;
+    info) info_network $2;;
+    help) print_help ;;
+    *) print_help
+esac
 
 

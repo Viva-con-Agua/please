@@ -1,16 +1,19 @@
 #!/bin/bash
 
+touch .env
 source .env
 source ../config/helper
+
+
 print_help() {
-echo    Commands: install, link, up, restart, down, logs 
-echo        install         install domain_service
-echo        link            service_name  connect an service and domain
-echo        up              create and start service
-echo        restart         restarts service
-echo        down            delete service docker
-echo        logs            get docker logs
-echo        help            print this page
+echo   " Commands: install, link, up, restart, down, logs "
+echo   "     install         install domain_service"
+echo   "     link            service_name  connect an service and domain"
+echo   "     up              create and start service"
+echo   "     restart         restarts service"
+echo   "     down            delete service docker"
+echo   "     logs            get docker logs"
+echo   "     help            print this page"
 }
 
 
@@ -80,7 +83,7 @@ case $1 in
     logs)
         logs_service;;
     help)
-        print_helpt;;
+        print_help;;
     *)
         print_help
 esac

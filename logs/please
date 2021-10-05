@@ -1,8 +1,7 @@
 #!/bin/bash
-source ../config/helper
+source ./config/helper
 touch .env
 source .env
-
 
 print_help() {
 echo   " Commands: install, up, restart, down, logs, help "
@@ -15,9 +14,13 @@ echo   "     help            print this page"
 }
 
 install_service(){
-    load_config_service nats
-    echo deploy_mode=${api_net_ip} > .env
+    load_config_service logs
+    echo deploy_mode=${deploy_mode} > .env
+    echo database_dir=${work_dir}/databases >> .env
     echo api_net_ip=${api_net_ip} >> .env
+    echo NATS_HOST=${nats_net_ip} >> .env
+    echo DB_HOST=db >> .env
+    echo DB_PORT=27017 >> .env
     docker-compose up -d
 }
 

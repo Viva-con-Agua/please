@@ -1,10 +1,56 @@
 #!/bin/bash
 
+touch .env
+source .env
+source config/helper
+
 print_help_please(){
-    echo "Commands: "
-    echo "  service        # install deployment scripts."
-    echo "  network        # handles docker network." 
-    echo "  help           # print this page."
+    echo "Commands: install domain api nats logs frontend network "
+    echo "  install         install deployment scripts."
+    echo "  network         docker network. "
+    echo "  domain          domain please functions"
+    echo "  api             api please functions"
+    echo "  nats            nats please functions"
+    echo "  logs            logs please functions"
+    echo "  frontend        frontend please functions"
+    echo "  help            print this page."
+}
+
+install_please() {
+    clear
+    echo "#################################"
+    echo "#                               #"
+    echo "###      Install please       ###"
+    echo "# viva con agua deployment tool #"
+    echo "#                               #"
+    echo "#################################"
+    echo ""
+    echo # install please-completion for zsh
+    if ! grep -q please-completion.bash ~/.zshrc; then
+        cp ~/.zshrc ~/.zshrc.bak-please
+        echo source ${PWD}/src/complete/please-completion.bash >> ~/.zshrc
+    fi
+    echo # ask for work_dir path
+    read -e -p "Please add a work directory path: " work_dir
+    echo # create work_dir folder
+    mkdir -p ${work_dir%/}/volumes ${work_dir%/}/repos ${work_dir%/}/databases ${work_dir%/}/frontend 
+    echo "work_dir=${work_dir%/}" > .env
+    echo "volumes_dir=${work_dir%/}/volumes" >> .env
+    echo "repos_dir="${work_dir%/}/repos >> .env
+    echo "frontend_dir="${work_dir%/}/frontend >> .env
+   
+    echo # ask for deploy_mode
+    while true; do
+        read -e -i "n" -p "Do you wish to install in live mode [y/N]: " yn
+        case $yn in
+            [Nn]* ) echo deploy_mode=develop >> .env; break;;
+            [Yy]* ) echo deploy_mode=live >> .env; break;;
+            * ) echo "Please answer y or n.";;
+        esac
+    done
+    #pattern="/work_dir=/c\work_dir=${work_dir%/}"
+    #sed -i ${pattern} config/services.ini
+    echo please has successfully installed
 }
 
 
@@ -12,27 +58,21 @@ print_help_please(){
 
 
 case $1 in
-    domain)
-        ./src/domain.sh  "${@:2}";;
-    api)
-        ./src/api.sh "${@:2}";;
-    nats)
-        ./src/nats.sh "${@:2}";;
-    logs)
-        ./src/logs.sh "${@:2}";;
-    frontend)
-        ./src/frontend.sh "${@:2}";;
-    service) 
-        source ${PWD}/src/service && service_handler "${@:2}";;
+    install)
+        install_please "${@:2}";;
     network) 
-        source ${PWD}/src/network && network_handler "${@:2}";;
-    install) 
-        ./src/install.sh "${@:2}";;
-    link)
-         ./src/link.sh "${@:2}";;
-    update)
-        source ${PWD}/src/update && update_handler "${@:2}";;
-    help) 
+        cd network && ./please "${@:2}";;
+    domain)
+        cd domain && ./please  "${@:2}";;
+    api)
+        cd api && ./please "${@:2}";;
+    nats)
+        cd nats && ./please "${@:2}";;
+    logs)
+        cd logs && ./please "${@:2}";;
+    frontend)
+        cd frontend && ./please "${@:2}";;
+   help) 
         print_help_please;;
     *) 
         print_help_please
