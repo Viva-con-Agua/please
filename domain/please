@@ -1,8 +1,8 @@
 #!/bin/bash
+# ###
 # DOMAIN DEPLOYMENT
-source ../config/helper
-touch .env
 source .env
+source ../config/helper
 
 current=${PWD}
 
@@ -17,40 +17,62 @@ echo   "     down            delete service docker"
 echo   "     logs            get docker logs"
 echo   "     help            print this page"
 }
-
+# ###
 # install_service
 install_service() {
-    load_config_service domain
-    echo deploy_mode=${deploy_mode} > .env
-    mkdir -p ${workdir}/subdomain
-    echo subdomain_path=${work_dir}/subdomain >> .env
+    # load config.ini and get default section.
+    load_ini && section_ini default
+    # create subdomain working directory.
+    mkdir -p ${work_dir}/domain/subdomain
+    # set .env param subdomain.
+    echo subdomain=${work_dir}/domain/subdomain >> .env
+    # ask for a path to an if the deploy mode is live.
     echo "#Path to Cert: only used in live mode"
     if [ ${deploy_mode} == "live" ]; then 
         read -e -p "path: " cert_path
-        echo "cert_path="${cert_path} >> .env
+        echo "certs="${certs} >> .env
     fi
-    echo domain_net_ip=${domain_net_ip} >> .env
+    # set .env param docker_ip.
+    echo docker_ip=${docker_ip} >> .env
     up_service
 }
 
-# $1 == service_name, $2 == domain_net_ip, $3 == route
+# ###
+# link_service
 link_service() {
-    load_config_service $1
+    # loads config.ini and section $1 
+    load_ini && section_ini $1
+    # store current directory
     current=${PWD}
+    # create new nginx config
     case $deploy_mode in
+        # in case $deploy_mode == live:
         live) 
-            cp ./default.conf ${subdomain_path}/${2}.conf && cd ${subdomain_path};
-            sed -i s/{cretificate}/${cert_path}/g ${2}.conf;;
-        *) cp ./default.dev.conf ${subdomain_path}/${2}.conf && cd ${subdomain_path}
+            # create a new nginx config in subdomain directory.
+            cp ./default.live.conf ${subdomain}/${route}.conf;
+            # change current directory to subdomain
+            cd ${subdomain};
+            # sed certificate in nginx config
+            sed -i s/{cretificate}/${certs}/g ${route}.conf;;
+        # else:    
+        *)  
+            # create a new nginx config in subdomain directory.
+            cp ./default.dev.conf ${subdomain}/${route}.conf;
+            # change current directory to subdomain
+            cd ${subdomain};
     esac
-    sed -i s/{subdomain}/${2}/g ${2}.conf
-    sed -i s/{proxy_pass}/${domain_net_ip}/g ${2}.conf
+    # sed subdomain route in nginx config
+    sed -i s/{subdomain}/${route}/g ${route}.conf
+    # sed proxy_pass in nginx config
+    sed -i s/{proxy_pass}/${docker_ip}/g ${route}.conf
+    # change directory to current
     cd $current
-    echo $1 is successfully link to domain ${2} with IP: ${domain_net_ip}.
+    echo $1 is successfully link to domain ${route} with IP: ${docker_ip}.
+    # restart_service
     restart_service
 }
-
-
+# ###
+# up_service 
 up_service() {
     case $deploy_mode in
         live) docker-compose -f docker-compose.yml -f docker-compose.live.yml up -d ;;
@@ -58,13 +80,16 @@ up_service() {
     esac
 }
 
+# ###
+# restart_service
 restart_service(){
     case $deploy_mode in
         live) docker-compose -f docker-compose.yml -f docker-compose.live.yml restart ;;
         *) docker-compose restart
     esac
 }
-
+# ###
+# down_service
 down_service(){
     case $deploy_mode in
         live) docker-compose -f docker-compose.yml -f docker-compose.live.yml down ;;
@@ -72,7 +97,8 @@ down_service(){
     esac
 
 }
-
+# ###
+# logs_service
 logs_service() {
     case $deploy_mode in
         live) docker-compose -f docker-compose.yml -f docker-compose.live.yml "${@:1}" ;;

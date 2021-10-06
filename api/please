@@ -6,51 +6,124 @@ source ../config/helper
 
 
 print_help() {
-echo   " Commands: install, link, up, restart, down, logs "
-echo   "     install         install domain_service"
-echo   "     link            service_name  connect an service and domain"
-echo   "     up              create and start service"
-echo   "     restart         restarts service"
-echo   "     down            delete service docker"
-echo   "     logs            get docker logs"
-echo   "     help            print this page"
+    echo   " Commands: install, link, up, restart, down, logs "
+    echo   "     install         install domain_service"
+    echo   "     link            service_name  connect an service and domain"
+    echo   "     up              create and start service"
+    echo   "     restart         restarts service"
+    echo   "     down            delete service docker"
+    echo   "     logs            get docker logs"
+    echo   "     help            print this page"
 }
 
 
 
 # echo install $1=deploy_mode $2=work_dir $3=domain_net_ip
 install_service() {
-    load_config_service api
-    echo deploy_mode=${1} > .env
-    mkdir -p ${work_dir}/api_v1
-    cp ./default.conf ${work_dir}/api_v1/default.conf
-    echo api_v1_path=${work_dir}/api_v1 >> .env
-    mkdir -p ${repos_dir}/api
-    echo api_v1_repos=${repos_dir}/api >> .env
-    echo domain_net_ip=${domain_net_ip} >> .env
-    echo api_net_ip=${api_net_ip} >> .env
-    echo ALLOW_ORIGINS= > .env.default
+    load_config default
+    mkdir -p ${work_dir}/api/repos
+    echo repos=${work_dir}/api/repos >> .env
+    mkdir -p ${work_dir}/api/databases
+    echo databases=${work_dir}/api/databases >> .env
+    mkdir -p ${work_dir}/api/routes
+    echo routes=${work_dir}/api/routes >> .env
+    cp default.conf ${work_dir}/api/routes/default.conf
+    echo domain_ip=${domain_ip} >> .env
+    echo nginx_ip=${nginx_ip} >> .env
+    echo nats_ip=${nats_ip} >> .env
+    echo NATS_HOST=${nats_ip} >> .env
+    echo logs_ip=${logs_ip} >> .env
+    echo ALLOW_ORIGINS= >> .env
+    echo DB_NAME=db >> .env
     if [ $deploy_mode == "develop" ]; then
-        echo COOKIE_SECURE=false >> .env.default
-        echo SAME_SITE=none >> .env.default
+        echo COOKIE_SECURE=false >> .env
+        echo SAME_SITE=none >> .env
     else
-        echo COOKIE_SECURE=false >> .env.default
-        echo SAME_SITE=none >> .env.default
+        echo "# TODO: COOKIE_SECURE and SAME_SITE for live mode"
+        echo COOKIE_SECURE=false >> .env
+        echo SAME_SITE=none >> .env
     fi
+    while true; do
+        read -e -i "y" -p "Do you wish logs via nats [y/N]: " yn
+        case $yn in
+            [Nn]*)
+                echo LOGGER_OUTPUT=IO >> .env
+                break;;
+            [Yy]*)
+                echo LOGGER_OUTPUT=nats >> .env
+                break;;
+        esac
+    done
+    while true; do
+        read -e -i "n" -p "Do you wish idjango export [y/N]: " yn
+        case $yn in
+            [Nn]*)
+                echo IDJANGO_EXPORT=false >> .env
+                break;;
+            [Yy]*)
+                #pattern="/IDJANGO_EXPORT=/c\IDJANGO_EXPORT=${idjango_export}"
+                #sed -i ${pattern} ../api/.env
+                echo IDJANGO_EXPORT=true >> .env
+                read idjango_url
+                echo IDJANGO_URL=${idjango_url} >> .env
+                #pattern="/IDJANGO_EXPORT=/c\IDJANGO_EXPORT=${idjango_export}"
+                #sed -i ${pattern} ../api/.env
+                read idjango_key
+                echo IDJANGO_KEY=${idjango_key} >> .env
+                break;;
+        esac
+    done
     docker-compose up -d
+}
+
+edit_config(){
+    case $2 in
+        .env)
+            echo $1;;
+        *)
+            pattern="/${1}=/c${1}=${2}"
+            sed -i ${pattern} ${3}
+    esac
+
+}
+
+add_service(){
+    load_config $1
+    current=${PWD}
+    cd ${repos} && 
+    if ! [ -d $repo_name ] ; then
+        git clone $repo
+    fi
+    cd $repo_name
+    cp .env .env.bak
+    cp example.env .env
+    edit_config "docker_ip" ${docker_ip} .env
+    edit_config "databases" ${databases} .env
+    #edit_config "version" "stage" .env
+    edit_config "NATS_HOST" $NATS_HOST .env
+    edit_config "ALLOW_ORIGINS" $ALLOW_ORIGINS .env
+    edit_config "COOKIE_SECURE" $COOKIE_SECURE .env
+    edit_config "SAME_SITE" $SAME_SITE .env
+    edit_config "IDJANGO_EXPORT" $IDJANGO_EXPORT .env
+    edit_config "IDJANGO_KEY" $IDJANGO_KEY .env
+    edit_config "IDJANGO_URL" $IDJANGO_URL .env
+    edit_config "LOGGER_OUTPUT" $LOGGER_OUTPUT .env
+    vim .env
+    make up ${deploy_mode}
+    cd $current
+    link_service $1
 }
 
 # $1 == name, $2 == domain_net_ip, $3 == route
 link_service() {
-    load_config_service $1
-    current=${PWD}
-    cp default.location ${api_v1_path}/${1}_${route}.location
-    cd ${api_v1_path}
+    load_config $1
+    cp default.location ${routes}/${1}_${route}.location
+    cd ${routes}
     sed -i s/{location}/${route}/g ${1}_${route}.location
-    sed -i s/{proxy_pass}/${api_net_ip}/g ${1}_${route}.location
+    sed -i s/{proxy_pass}/${docker_ip}/g ${1}_${route}.location
     cd $current
-    echo $1 is successfully link to domain ${route} with IP: ${api_net_ip}.
-    docker-compose restart
+    echo $1 is successfully link to domain ${route} with IP: ${docker_ip}.
+    docker-compose restart nginx
 }
 
 up_service() {
@@ -61,8 +134,28 @@ restart_service() {
     docker-compose restart
 }
 
+down_api_service(){
+    load_ini && section_ini $1
+    current=${PWD}
+    cd ${repos}/${repo_name}
+    make down
+    cd $current
+}
+
 down_service() {
-    docker-compose down
+    load_ini
+    if [ -z ${1} ]; then
+        for v in ${sections[*]}
+        do
+            case v in
+                default) continue;;
+                *) down_api_service $v
+            esac
+        done
+        docker-compose down
+    else
+        down_api_service $1
+    fi
 }
 
 logs_service(){
@@ -74,6 +167,8 @@ case $1 in
         install_service "${@:2}";;
     link)
         link_service "${@:2}";;
+    add)
+        add_service "${@:2}";;
     up)
         up_service ;;
     restart)

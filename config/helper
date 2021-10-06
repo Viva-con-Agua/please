@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 section=""
 
 cfg.parser () {
@@ -20,8 +21,32 @@ cfg.parser () {
     eval "$(echo "${ini[*]}")"               # eval the result
 }
 
+load_config(){
+    cfg.parser 'config.ini' &&
+        if [ "$(type -t cfg.section.${1})" = 'function' ]; then
+            cfg.section.${1}
+        else
+            echo service not found ${1}
+            exit 1
+        fi
+}
+
+load_ini(){
+    cfg.parser 'config.ini'
+}
+
+section_ini(){
+    if [ "$(type -t cfg.section.${1})" = 'function' ]; then
+        cfg.section.${1}
+    else
+        echo service not found ${1}
+    fi
+}
+
 load_config_service(){
-    cfg.parser './config/services.ini' && 
+    path="${root_dir}/config/services.ini"
+    echo $path
+    cfg.parser $path && 
         if [ "$(type -t cfg.section.${1})" = 'function' ]; then
             cfg.section.${1}
         else
@@ -31,7 +56,7 @@ load_config_service(){
 }
 
 load_config_network(){
-    cfg.parser './config/network.ini' && 
+    cfg.parser '${root_path}/config/network.ini' && 
         if [ "$(type -t cfg.section.${1})" = 'function' ]; then
             cfg.section.${2}
         else
@@ -41,7 +66,7 @@ load_config_network(){
 }
 
 load_config_frontend(){
-    cfg.parser './config/frontend.ini' && 
+    cfg.parser '${root_path}/config/frontend.ini' && 
         if [ "$(type -t cfg.section.${1})" = 'function' ]; then
             cfg.section.${2}
         else

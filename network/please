@@ -15,12 +15,12 @@ print_help(){
 
 
 create_network_function(){
-    cfg.parser './config/network.ini' && cfg.section.${1} &&
+    load_ini && section_ini $1
     docker network create -d bridge --subnet ${subnet} ${name} || true
-
 }
+
 create_network(){
-    cfg.parser './config/network.ini' &&
+    load_ini 
     if [ -z ${1} ]; then
         for v in ${sections[*]}
         do
@@ -33,13 +33,13 @@ create_network(){
 }
 
 delete_network(){
-    cfg.parser './config/network.ini' && cfg.section.${1} &&
+    load_ini && section_ini $1
     docker network rm ${name}
 }
 
 
 info_print(){
-    cfg.section.${1} &&
+    load_ini && section_ini $1
     echo "Name: ";
     docker network inspect ${name} --format "{{.Name}}"; 
     echo "Subnet: ";
@@ -49,7 +49,7 @@ info_print(){
 }
 
 info_network(){
-    cfg.parser './config/network.ini' &&
+    load_ini
     if [ -z ${1+x} ]; then
         for v in ${sections[*]}
         do
@@ -60,31 +60,9 @@ info_network(){
     fi
 }
 
-set_network(){
-        cfg.section.${1}
-        net="${2}_ip"
-        echo $api_ip
-        if ! grep -q $net .env ; then
-            sed '/${net}/d' .env
-        fi
-        echo ${!net}
-        echo ${net}
-        echo ${net}=${!net} >> .env
-
-}
-
-set_networks(){
-    cfg.parser './config/network.ini' &&
-    for var in ${sections[*]}
-    do
-        set_network $var ${1}
-    done
-}
-
 case $1 in
     create) create_network $2;;
     delete) delete_network $2;;
-    set) set_networks $2;;
     info) info_network $2;;
     help) print_help ;;
     *) print_help
