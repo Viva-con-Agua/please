@@ -1,8 +1,0 @@
-version: '3'
-
-services:
-    nginx:
-        volumes:
-            - ${CERT_PATH}:/etc/nginx/certs     
-        ports:
-            - 443:443
