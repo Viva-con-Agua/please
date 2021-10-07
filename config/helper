@@ -35,6 +35,10 @@ load_ini(){
     cfg.parser 'config.ini'
 }
 
+load_ini_file(){
+    cfg.parser $1
+}
+
 section_ini(){
     if [ "$(type -t cfg.section.${1})" = 'function' ]; then
         cfg.section.${1}

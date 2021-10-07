@@ -19,16 +19,14 @@ if ! grep -q please-completion.bash ~/.zshrc; then
 fi
 
 case $1 in
-    install)
-        cd install && ./please "${@:2}";;
+    base)
+        ./base.sh "${@:2}";;
     network) 
-        cd network && ./please "${@:2}";;
-    domain)
-        cd domain && ./please  "${@:2}";;
+        ./network.sh "${@:2}";;
     api)
-        cd api && ./please "${@:2}";;
+        ./api.sh "${@:2}";;
     frontend)
-        cd frontend && ./please "${@:2}";;
+        ./frontend.sh "${@:2}";;
     help) 
         print_help_please;;
     *) 
