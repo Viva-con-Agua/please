@@ -56,6 +56,7 @@ install_service(){
     link_service $1
 }
 
+
 # $1 == name, $2 == domain_net_ip, $3 == route
 link_service() {
     current=${PWD}
@@ -111,6 +112,22 @@ logs_service(){
     cd $current
 }
 
+set_allow_origin(){
+    ao="${ALLOW_ORIGINS}, ${1}"
+    IFS=', ' read -r -a array <<< $ao
+    temp_a=$(echo ${array[@]} | tr ' ' '\n' | sort -u | tr '\n' ' ')
+    temp=""
+    for v in ${temp_a[@]} 
+    do
+        temp="${temp}${v},"
+    done
+    allow_origin="${temp%,}"
+    pattern=/ALLOW_ORIGINS=/cALLOW_ORIGINS=${allow_origin}
+    sed -i ${pattern} .env
+    services=$(ls ${api_repos})
+    echo $services
+}
+
 case $1 in
     install)
         install_service "${@:2}";;
@@ -126,6 +143,8 @@ case $1 in
         down_api_service "${@:2}";;
     logs)
         logs_service;;
+    set)
+        set_allow_origin "${@:2}";;
     help)
         print_help;;
     *)
