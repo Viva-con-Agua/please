@@ -42,7 +42,7 @@ install_service(){
     edit_config "docker_ip" ${docker_ip} .env
     edit_config "databases" ${api_databases} .env
     #edit_config "version" "stage" .env
-    edit_config "NATS_HOST" $NATS_HOST .env
+    edit_config "NATS_HOST" ${api_nats_ip} .env
     edit_config "ALLOW_ORIGINS" $ALLOW_ORIGINS .env
     edit_config "COOKIE_SECURE" $COOKIE_SECURE .env
     edit_config "SAME_SITE" $SAME_SITE .env
@@ -60,6 +60,7 @@ install_service(){
 link_service() {
     current=${PWD}
     load_ini_file 'config/api.ini' && section_ini $1
+    cd docker/api
     cp default.location ${api_routes}/${1}_${route}.location
     cd ${api_routes}
     sed -i s/{location}/${route}/g ${1}_${route}.location
@@ -74,7 +75,7 @@ up_service() {
     load_ini_file 'config/api.ini' && section_ini $1
     current=${PWD}
     cd ${api_repos}/${repo_name} 
-    make please
+    make up
     cd $current
 }
 
