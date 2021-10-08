@@ -1,35 +1,34 @@
 #!/bin/bash
 
+touch .env
+source .env
+source config/helper
+
 print_help_please(){
-    echo "Commands: "
-    echo "  service        # install deployment scripts."
-    echo "  network        # handles docker network." 
-    echo "  help           # print this page."
+    echo "Commands: install domain api nats logs frontend network "
+    echo "  install         install deployment scripts."
+    echo "  network         docker network. "
+    echo "  domain          domain please functions"
+    echo "  api             api please functions"
+    echo "  frontend        frontend please functions"
+    echo "  help            print this page."
 }
-
-
-
-
+if ! grep -q please-completion.bash ~/.zshrc; then
+    cp ~/.zshrc ~/.zshrc.bak-please
+    echo source ${PWD}/please-completion.bash >> ~/.zshrc
+fi
 
 case $1 in
-    domain)
-        ./src/domain.sh  "${@:2}";;
-    api)
-        ./src/api.sh "${@:2}";;
-    nats)
-        ./src/nats.sh "${@:2}";;
-    logs)
-        ./src/logs.sh "${@:2}";;
-    service) 
-        source ${PWD}/src/service && service_handler "${@:2}";;
+    base)
+        ./base.sh "${@:2}";;
     network) 
-        source ${PWD}/src/network && network_handler "${@:2}";;
-    install) 
-        ./src/install.sh "${@:2}";;
-    link)
-         ./src/link.sh "${@:2}";;
-    update)
-        source ${PWD}/src/update && update_handler "${@:2}";;
+        ./network.sh "${@:2}";;
+    api)
+        ./api.sh "${@:2}";;
+    frontend)
+        ./frontend.sh "${@:2}";;
+    quickinstall)
+        ./quickinstall.sh "${@:2}";;
     help) 
         print_help_please;;
     *) 
