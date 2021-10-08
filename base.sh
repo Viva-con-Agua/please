@@ -129,7 +129,9 @@ setup_env_backend(){
     echo domain_ip=${frontend_api_ip} >> $d_env
     echo logs_ip=${api_logs_ip} >> $d_env
     echo nats_ip=${api_nats_ip} >> $d_env
-    echo NATS_HOST=${api_nats_ip} >> $env_file
+    echo NATS_HOST=${api_nats_ip} >> $d_env
+    echo DB_HOST=db >> $d_env
+    echo DB_PORT=27017 >> $d_env
     echo databases=${api_databases} >> $d_env
     echo routes=${api_routes} >> $d_env
     if ! [ $deploy_mode == "develop" ]; then
@@ -162,6 +164,223 @@ down_base(){
     fi
 
 }
+
+
+
+# ###
+# up_frontend 
+up_frontend() {
+    source ${env_file}
+    # store current directory in current variable
+    current=${PWD}
+    # change directory to frontend_repos/repo_name
+    cd docker/frontend 
+    # change directory to frontend_repos/repo_name
+    case $deploy_mode in
+        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml up -d --build ;;
+        *) docker-compose up -d --build
+    esac
+    cd $current
+}
+
+# ###
+# up_api
+up_api() {
+    # store current directory in current variable
+    current=${PWD}
+    # change directory to frontend_repos/repo_name
+    cd docker/api
+    docker-compose up -d --build
+    cd $current
+}
+up_base(){
+    if [ -z ${1} ]; then 
+        up_frontend
+        up_api
+    else
+        case $1 in
+            frontend) up_frontend;;
+            api) up_api;;
+            *) echo "TODO: Help"
+        esac
+    fi
+}
+
+# ###
+# restart_service
+restart_frontend(){ 
+    # store current directory in current variable
+    current=${PWD}
+    # change directory to frontend_repos/repo_name
+    cd docker/frontend 
+    # looking for deploy_mode and restart services
+    case $deploy_mode in
+        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml restart ;;
+        *) docker-compose restart
+    esac
+    cd $current
+}
+# ###
+# restart_service
+restart_api(){ 
+    # store current directory in current variable
+    current=${PWD}
+    # change directory to frontend_repos/repo_name
+    cd docker/api 
+    docker-compose restart
+    cd $current
+}
+restart_base(){
+    if [ -z ${1} ]; then 
+        restart_frontend
+        restart_api
+    else
+        case $1 in
+            frontend) restart_frontend;;
+            api) restart_api;;
+            *) echo "TODO: Help"
+        esac
+    fi
+}
+
+# ###
+# restart_service
+update_frontend(){ 
+    # store current directory in current variable
+    current=${PWD}
+    # change directory to frontend_repos/repo_name
+    cd docker/frontend 
+    # pull repo
+    docker-compose pull
+    # change directory to $current
+    cd $current
+    # up_service
+    up_service $1
+}
+
+# ###
+# restart_service
+update_api(){ 
+    # store current directory in current variable
+    current=${PWD}
+    # change directory to frontend_repos/repo_name
+    cd docker/api 
+    # pull repo
+    docker-compose pull
+    # change directory to $current
+    cd $current
+    # up_service
+    up_service $1
+}
+
+update_base(){
+    if [ -z ${1} ]; then 
+        update_frontend
+        update_api
+    else
+        case $1 in
+            frontend) update_frontend;;
+            api) update_api;;
+            *) echo "TODO: Help"
+        esac
+    fi
+}
+
+
+# ###
+# down_service
+down_frontend(){
+    # store current directory in current variable
+    current=${PWD}
+    # change directory to frontend_repos/repo_name
+    cd docker/frontend 
+    # looking for deploy_mode and shutdown all services
+    case $deploy_mode in
+        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml down ;;
+        *) docker-compose down
+    esac
+    cd $current
+
+}
+
+# ###
+# down_service
+down_api(){
+    # store current directory in current variable
+    current=${PWD}
+    # change directory to frontend_repos/repo_name
+    cd docker/api 
+    # looking for deploy_mode and shutdown all services
+    case $deploy_mode in
+        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml down ;;
+        *) docker-compose down
+    esac
+    cd $current
+
+}
+
+down_base(){
+    if [ -z ${1} ]; then 
+        down_frontend
+        down_api
+    else
+        case $1 in
+            frontend) down_frontend;;
+            api) down_api;;
+            *) echo "TODO: Help"
+        esac
+    fi
+}
+
+# ###
+# logs_service
+logs_frontend() {
+    # store current directory in current variable
+    current=${PWD}
+    # change directory to frontend_repos/repo_name
+    cd docker/frontend 
+    # looking for deploy_mode and show logs with given parameter
+    case $deploy_mode in
+        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml logs "${@:1}" ;;
+        *) docker-compose logs "${@:2}"
+    esac
+    # change directory to $current
+    cd $current
+}
+
+# ###
+# logs_service
+logs_api() {
+    # store current directory in current variable
+    current=${PWD}
+    # change directory to frontend_repos/repo_name
+    cd docker/api
+    # looking for deploy_mode and show logs with given parameter
+    docker-compose logs "${@:2}"
+    # change directory to $current
+    cd $current
+}
+
+logs_base(){
+    if [ -z ${1} ]; then 
+        logs_frontend
+        logs_api
+    else
+        case $1 in
+            frontend) logs_frontend;;
+            api) logs_api;;
+            *) echo "TODO: Help"
+        esac
+    fi
+}
+
+
+
+
+
+
+
+
 setup_base(){
 initial_print
 create_working_directorys
@@ -178,8 +397,16 @@ start_base
 case $1 in 
     install)
         setup_base;;
+    up)
+        up_base "${@:2}";;
+    update)
+        update_base "${@:2}";;
+    restart)
+        restart_base "${@:2}";;
     down)
-        down_base;;
+        down_base "${@:2}";;
+    logs)
+        logs_base "${@:2}";;
     *)
 esac
 

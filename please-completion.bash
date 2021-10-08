@@ -9,7 +9,7 @@ _please() {
   declare -A ACTIONS
   ACTIONS[base]="install down help"
   ACTIONS[network]="create delete set info help"
-  ACTIONS[frontend]="link up restart down logs help"
+  ACTIONS[frontend]="link up update restart down logs help"
   ACTIONS[api]="link up add restart down logs help"
 
   # All possible options at the end of the line
