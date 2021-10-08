@@ -1,6 +1,6 @@
 #!/bin/bash
 # ###
-# DOMAIN DEPLOYMENT
+# Frontend DEPLOYMENT
 source .env
 source config/helper
 
@@ -101,10 +101,7 @@ up_service() {
     # change directory to frontend_repos/repo_name
     cd ${frontend_repos}/${repo_name} 
     # change directory to frontend_repos/repo_name
-    case $deploy_mode in
-        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml up -d --build ;;
-        *) docker-compose up -d --build
-    esac
+    docker-compose up -d --build
     cd $current
 }
 
@@ -118,10 +115,7 @@ restart_service(){
     # change directory to frontend_repos/repo_name
     cd ${frontend_repos}/${repo_name} 
     # looking for deploy_mode and restart services
-    case $deploy_mode in
-        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml restart ;;
-        *) docker-compose restart
-    esac
+    docker-compose restart
     cd $current
 }
 
@@ -152,11 +146,7 @@ down_service(){
     current=${PWD}
     # change directory to frontend_repos/repo_name
     cd ${frontend_repos}/${repo_name} 
-    # looking for deploy_mode and shutdown all services
-    case $deploy_mode in
-        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml down ;;
-        *) docker-compose down
-    esac
+    docker-compose down
     cd $current
 
 }
@@ -169,11 +159,7 @@ logs_service() {
     current=${PWD}
     # change directory to frontend_repos/repo_name
     cd ${frontend_repos}/${repo_name}
-    # looking for deploy_mode and show logs with given parameter
-    case $deploy_mode in
-        live) docker-compose -f docker-compose.yml -f docker-compose.live.yml logs "${@:1}" ;;
-        *) docker-compose logs "${@:2}"
-    esac
+    docker-compose logs "${@:2}"
     # change directory to $current
     cd $current
 }
