@@ -42,7 +42,7 @@ install_service(){
     edit_config "docker_ip" ${docker_ip} .env
     edit_config "databases" ${api_databases} .env
     #edit_config "version" "stage" .env
-    edit_config "NATS_HOST" $NATS_HOST .env
+    edit_config "NATS_HOST" ${api_nats_ip} .env
     edit_config "ALLOW_ORIGINS" $ALLOW_ORIGINS .env
     edit_config "COOKIE_SECURE" $COOKIE_SECURE .env
     edit_config "SAME_SITE" $SAME_SITE .env
@@ -51,8 +51,8 @@ install_service(){
     edit_config "IDJANGO_URL" $IDJANGO_URL .env
     edit_config "LOGGER_OUTPUT" $LOGGER_OUTPUT .env
     vim .env
-    make up ${deploy_mode}
     cd $current
+    up_service $1
     link_service $1
 }
 
@@ -60,6 +60,7 @@ install_service(){
 link_service() {
     current=${PWD}
     load_ini_file 'config/api.ini' && section_ini $1
+    cd docker/api
     cp default.location ${api_routes}/${1}_${route}.location
     cd ${api_routes}
     sed -i s/{location}/${route}/g ${1}_${route}.location
@@ -67,42 +68,47 @@ link_service() {
     cd $current
     echo $1 is successfully link to domain ${route} with IP: ${docker_ip}.
     cd docker/api && docker-compose restart nginx
+    cd $current
 }
 
 up_service() {
-    docker-compose up -d
+    load_ini_file 'config/api.ini' && section_ini $1
+    current=${PWD}
+    cd ${api_repos}/${repo_name} 
+    make up
+    cd $current
 }
 
 restart_service() {
+    load_ini_file 'config/api.ini' && section_ini $1
+    current=${PWD}
+    cd ${api_repos}/${repo_name} 
     docker-compose restart
+    cd $current
 }
 
 down_api_service(){
-    load_ini && section_ini $1
+    load_ini_file 'config/api.ini' && section_ini $1
     current=${PWD}
-    cd ${repos}/${repo_name}
+    cd ${api_repos}/${repo_name} 
     make down
     cd $current
 }
 
 down_service() {
-    load_ini
-    if [ -z ${1} ]; then
-        for v in ${sections[*]}
-        do
-            case v in
-                default) continue;;
-                *) down_api_service $v
-            esac
-        done
-        docker-compose down
-    else
-        down_api_service $1
-    fi
+    load_ini_file 'config/api.ini' && section_ini $1
+    current=${PWD}
+    cd ${api_repos}/${repo_name} 
+    docker-compose down
+    cd $current
 }
 
 logs_service(){
-    docker-compose logs "${@:1}"
+    load_ini_file 'config/api.ini' && section_ini $1
+    current=${PWD}
+    cd ${api_repos}/${repo_name} 
+    docker-compose logs "${@:2}"
+    cd $current
 }
 
 case $1 in
@@ -117,7 +123,7 @@ case $1 in
     restart)
         restart_service;;
     down)
-        down_service;;
+        down_api_service "${@:2}";;
     logs)
         logs_service;;
     help)
