@@ -3,7 +3,7 @@ _please() {
   COMPREPLY=()
 
   # All possible first values in command line
-  local SERVICES=("-v" "base" "network" "frontend" "api" "help")
+  local SERVICES=("-v" "base" "network" "frontend" "api" "help" "quickinstall")
 
   # declare an associative array for options
   declare -A ACTIONS
@@ -11,6 +11,7 @@ _please() {
   ACTIONS[network]="create delete set info help"
   ACTIONS[frontend]="link up update restart down logs help"
   ACTIONS[api]="link up add restart down logs help"
+  ACTIONS[quickinstall]="donation"
 
   # All possible options at the end of the line
   local OPTIONS=("-d" "-q")

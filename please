@@ -27,6 +27,8 @@ case $1 in
         ./api.sh "${@:2}";;
     frontend)
         ./frontend.sh "${@:2}";;
+    quickinstall)
+        ./quickinstall.sh "${@:2}";;
     help) 
         print_help_please;;
     *) 
