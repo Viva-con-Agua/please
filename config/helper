@@ -47,6 +47,16 @@ section_ini(){
     fi
 }
 
+edit_config(){
+    case $2 in
+        .env)
+            echo $1;;
+        *)
+            pattern="/${1}=/c${1}=${2}"
+            sed -i ${pattern} ${3}
+    esac
+
+}
 load_config_service(){
     path="${root_dir}/config/services.ini"
     echo $path

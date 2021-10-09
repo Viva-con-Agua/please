@@ -18,16 +18,7 @@ print_help() {
 
 
 
-edit_config(){
-    case $2 in
-        .env)
-            echo $1;;
-        *)
-            pattern="/${1}=/c${1}=${2}"
-            sed -i ${pattern} ${3}
-    esac
 
-}
 
 install_service(){
     load_ini_file 'config/api.ini' && section_ini $1
@@ -112,21 +103,7 @@ logs_service(){
     cd $current
 }
 
-set_allow_origin(){
-    ao="${ALLOW_ORIGINS}, ${1}"
-    IFS=', ' read -r -a array <<< $ao
-    temp_a=$(echo ${array[@]} | tr ' ' '\n' | sort -u | tr '\n' ' ')
-    temp=""
-    for v in ${temp_a[@]} 
-    do
-        temp="${temp}${v},"
-    done
-    allow_origin="${temp%,}"
-    pattern=/ALLOW_ORIGINS=/cALLOW_ORIGINS=${allow_origin}
-    sed -i ${pattern} .env
-    services=$(ls ${api_repos})
-    echo $services
-}
+
 
 case $1 in
     install)
@@ -136,13 +113,13 @@ case $1 in
     add)
         add_service "${@:2}";;
     up)
-        up_service ;;
+        up_service "${@:2}";;
     restart)
-        restart_service;;
+        restart_service "${@:2}";;
     down)
         down_api_service "${@:2}";;
     logs)
-        logs_service;;
+        logs_service "${@:2}";;
     set)
         set_allow_origin "${@:2}";;
     help)

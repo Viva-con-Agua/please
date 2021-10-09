@@ -13,7 +13,9 @@ initial_print(){
     echo "--->"
 }
 
-create_working_directorys(){
+install_base(){
+
+    ## create working directorys
     # define working directory 
     echo "# ask for work_dir path"
     read -e -p "Please add a work directory path: " work_dir_input
@@ -37,15 +39,15 @@ create_working_directorys(){
     echo api_databases=${work_dir}/api/databases >> $env_file
     mkdir -p ${work_dir}/api/routes
     echo api_routes=${work_dir}/api/routes >> $env_file
-}
 
-set_deploy_mode(){
-    echo ALLOW_ORIGINS= >> $env_file
+    # set deploy_mode
     echo "# ask for deploy_mode"
+    domain=""
     while true; do
         read -e -i "n" -p "Do you wish to install in live mode [y/N]: " yn
         case $yn in
-            [Nn]* ) 
+            [Nn]* )
+                domain=localhost
                 echo domain=localhost >> $env_file
                 echo deploy_mode=develop >> $env_file;
                 echo COOKIE_SECURE=false >> $env_file
@@ -62,21 +64,18 @@ set_deploy_mode(){
             * ) echo "Please answer y or n.";;
         esac
     done
-}
-
-set_docker_ip(){
+    
     load_ini_file './config/frontend.ini' && section_ini default
     echo frontend_nginx_ip=${docker_ip} >> $env_file
     section_ini api
     echo frontend_api_ip=${docker_ip} >> $env_file
-    echo api_subdomain=${route} >> $env_file
+    echo api_subdomain=${route}.${domain} >> $env_file
+    echo ALLOW_ORIGINS=${route}.${domain} >> $env_file
     load_ini_file './config/api.ini' && section_ini default
     echo api_nginx_ip=${nginx_ip} >> $env_file
     echo api_nats_ip=${nats_ip} >> $env_file
     echo api_logs_ip=${logs_ip} >> $env_file
-}
-
-set_logging_service(){
+    # set logging type
     while true; do
         read -e -i "y" -p "Do you wish logs via nats [y/N]: " yn
         case $yn in
@@ -88,8 +87,7 @@ set_logging_service(){
                 break;;
         esac
     done
-}
-set_idjango(){
+    # set idjango params
     while true; do
         read -e -i "n" -p "Do you wish idjango export [y/N]: " yn
         case $yn in
@@ -123,6 +121,7 @@ setup_env_frontend(){
 }
 
 setup_env_backend(){
+    source .env
     d_env=docker/api/.env
     source ${env_file}
     echo nginx_ip=${api_nginx_ip} > $d_env
@@ -381,22 +380,10 @@ logs_base(){
 
 
 
-setup_base(){
-initial_print
-create_working_directorys
-set_deploy_mode
-set_docker_ip
-set_logging_service
-set_idjango
-setup_env_frontend
-setup_env_backend
-./frontend.sh link api
-start_base
 
-}
 case $1 in 
     install)
-        setup_base;;
+        install_base;;
     up)
         up_base "${@:2}";;
     update)
