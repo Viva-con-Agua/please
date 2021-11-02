@@ -52,7 +52,7 @@ edit_config(){
         .env)
             echo $1;;
         *)
-            pattern="/${1}=/c${1}=${2}"
+            pattern="/${1}=*/c${1}=${2}"
             sed -i ${pattern} ${3}
     esac
 
