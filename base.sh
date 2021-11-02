@@ -13,7 +13,9 @@ initial_print(){
     echo "--->"
 }
 
-create_working_directorys(){
+install_base(){
+
+    ## create working directorys
     # define working directory 
     echo "# ask for work_dir path"
     read -e -p "Please add a work directory path: " work_dir_input
@@ -37,15 +39,15 @@ create_working_directorys(){
     echo api_databases=${work_dir}/api/databases >> $env_file
     mkdir -p ${work_dir}/api/routes
     echo api_routes=${work_dir}/api/routes >> $env_file
-}
 
-set_deploy_mode(){
-    echo ALLOW_ORIGINS= >> $env_file
+    # set deploy_mode
     echo "# ask for deploy_mode"
+    domain=""
     while true; do
         read -e -i "n" -p "Do you wish to install in live mode [y/N]: " yn
         case $yn in
-            [Nn]* ) 
+            [Nn]* )
+                domain=localhost
                 echo domain=localhost >> $env_file
                 echo deploy_mode=develop >> $env_file;
                 echo COOKIE_SECURE=false >> $env_file
@@ -62,21 +64,18 @@ set_deploy_mode(){
             * ) echo "Please answer y or n.";;
         esac
     done
-}
-
-set_docker_ip(){
+    
     load_ini_file './config/frontend.ini' && section_ini default
     echo frontend_nginx_ip=${docker_ip} >> $env_file
     section_ini api
     echo frontend_api_ip=${docker_ip} >> $env_file
-    echo api_subdomain=${route} >> $env_file
+    echo api_subdomain=${route}.${domain} >> $env_file
+    echo ALLOW_ORIGINS=${route}.${domain} >> $env_file
     load_ini_file './config/api.ini' && section_ini default
     echo api_nginx_ip=${nginx_ip} >> $env_file
     echo api_nats_ip=${nats_ip} >> $env_file
     echo api_logs_ip=${logs_ip} >> $env_file
-}
-
-set_logging_service(){
+    # set logging type
     while true; do
         read -e -i "y" -p "Do you wish logs via nats [y/N]: " yn
         case $yn in
@@ -88,8 +87,7 @@ set_logging_service(){
                 break;;
         esac
     done
-}
-set_idjango(){
+    # set idjango params
     while true; do
         read -e -i "n" -p "Do you wish idjango export [y/N]: " yn
         case $yn in
@@ -123,6 +121,7 @@ setup_env_frontend(){
 }
 
 setup_env_backend(){
+    source .env
     d_env=docker/api/.env
     source ${env_file}
     echo nginx_ip=${api_nginx_ip} > $d_env
@@ -288,7 +287,7 @@ update_base(){
 
 
 # ###
-# down_service
+# down_frontend
 down_frontend(){
     # store current directory in current variable
     current=${PWD}
@@ -304,7 +303,7 @@ down_frontend(){
 }
 
 # ###
-# down_service
+# down_api
 down_api(){
     # store current directory in current variable
     current=${PWD}
@@ -318,7 +317,8 @@ down_api(){
     cd $current
 
 }
-
+# ###
+# down_base
 down_base(){
     if [ -z ${1} ]; then 
         down_frontend
@@ -374,29 +374,9 @@ logs_base(){
     fi
 }
 
-
-
-
-
-
-
-
-setup_base(){
-initial_print
-create_working_directorys
-set_deploy_mode
-set_docker_ip
-set_logging_service
-set_idjango
-setup_env_frontend
-setup_env_backend
-./frontend.sh link api
-start_base
-
-}
 case $1 in 
     install)
-        setup_base;;
+        install_base;;
     up)
         up_base "${@:2}";;
     update)
@@ -409,87 +389,3 @@ case $1 in
         logs_base "${@:2}";;
     *)
 esac
-
-##pattern="/work_dir=/c\work_dir=${work_dir%/}"
-##sed -i ${pattern} config/services.ini
-#
-#source $env_file
-#
-#echo "# install frontend"
-## load config.ini and get default section.
-#load_ini && section_ini default
-## create subdomain working directory.
-#mkdir -p ${work_dir}/frontend/subdomain
-## set .env param subdomain.
-#echo subdomain=${work_dir}/frontend/subdomain >> $env_file
-## ask for a path to an if the deploy mode is live.
-#echo "#Path to Cert: only used in live mode"
-#if [ ${deploy_mode} == "live" ]; then 
-#    read -e -p "path: " cert_path
-#    echo "certs="${certs} >> $env_file
-#fi
-## set .env param docker_ip.
-#
-#
-## install api
-#mkdir -p ${work_dir}/api/repos
-#echo repos=${work_dir}/api/repos >> $env_file
-#mkdir -p ${work_dir}/api/databases
-#echo databases=${work_dir}/api/databases >> $env_file
-#mkdir -p ${work_dir}/api/routes
-#echo routes=${work_dir}/api/routes >> $env_file
-#cp default.conf ${work_dir}/api/routes/default.conf
-#echo frontend_api_ip=${domain_ip} >> $env_file
-#echo api_nginx_ip=${nginx_ip} >> $env_file
-#echo api_nats_ip=${nats_ip} >> $env_file
-#echo NATS_HOST=${nats_ip} >> $env_file
-#echo logs_ip=${logs_ip} >> $env_file
-#echo ALLOW_ORIGINS= >> $env_file
-#echo DB_NAME=db >> $env_file
-#if [ $deploy_mode == "develop" ]; then
-#    echo COOKIE_SECURE=false >> $env_file
-#    echo SAME_SITE=none >> $env_file
-#else
-#    echo "# TODO: COOKIE_SECURE and SAME_SITE for live mode"
-#    echo COOKIE_SECURE=false >> $env_file
-#    echo SAME_SITE=none >> $env_file
-#fi
-#while true; do
-#    read -e -i "y" -p "Do you wish logs via nats [y/N]: " yn
-#    case $yn in
-#        [Nn]*)
-#            echo LOGGER_OUTPUT=IO >> $env_file
-#            break;;
-#        [Yy]*)
-#            echo LOGGER_OUTPUT=nats >> $env_file
-#            break;;
-#    esac
-#done
-#while true; do
-#    read -e -i "n" -p "Do you wish idjango export [y/N]: " yn
-#    case $yn in
-#        [Nn]*)
-#            echo IDJANGO_EXPORT=false >> $env_file
-#            break;;
-#        [Yy]*)
-#            #pattern="/IDJANGO_EXPORT=/c\IDJANGO_EXPORT=${idjango_export}"
-#            #sed -i ${pattern} ../api/$env_file
-#            echo IDJANGO_EXPORT=true >> $env_file
-#            read -p "IDJANGO_URL: " idjango_url
-#            echo IDJANGO_URL=${idjango_url} >> $env_file
-#            #pattern="/IDJANGO_EXPORT=/c\IDJANGO_EXPORT=${idjango_export}"
-#            #sed -i ${pattern} ../api/.env
-#            read -p "IDJANGO_KEY: " idjango_key
-#            echo IDJANGO_KEY=${idjango_key} >> $env_file
-#            break;;
-#    esac
-#done
-#up_service
-#
-##cd ../domain && ./please install && cd ../install
-##echo "# install api"
-#cd ../api && ./please install && cd ../install
-#echo "# link domain and api"
-#cd ../domain && ./please link api && cd ../install
-#echo please has successfully installed
-

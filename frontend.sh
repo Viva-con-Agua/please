@@ -89,6 +89,8 @@ link_service() {
     cd $current
     echo $1 is successfully link to domain ${route} with IP: ${docker_ip}.
     cd docker/frontend && docker-compose restart nginx
+    cd $current
+    ./set.sh allow_origin ${route}.${domain}
     # restart_service
 }
 # ###

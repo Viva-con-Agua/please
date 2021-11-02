@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  nginx:
+    image: nginx:perl
+    restart: always
+    volumes:
+      - ${routes}:/etc/nginx/conf.d/
+    networks:
+      component_net:
+        ipv4_address: ${nginx_ip}
+      domain_net:
+        ipv4_address: ${domain_ip}
+  
+networks:
+  component_net:
+    external:
+      name: component_net
+  domain_net:
+    external:
+      name: domain_net
+ 
+
+    

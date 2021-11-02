@@ -18,16 +18,7 @@ print_help() {
 
 
 
-edit_config(){
-    case $2 in
-        .env)
-            echo $1;;
-        *)
-            pattern="/${1}=/c${1}=${2}"
-            sed -i ${pattern} ${3}
-    esac
 
-}
 
 install_service(){
     load_ini_file 'config/api.ini' && section_ini $1
@@ -55,6 +46,7 @@ install_service(){
     up_service $1
     link_service $1
 }
+
 
 # $1 == name, $2 == domain_net_ip, $3 == route
 link_service() {
@@ -111,6 +103,8 @@ logs_service(){
     cd $current
 }
 
+
+
 case $1 in
     install)
         install_service "${@:2}";;
@@ -119,13 +113,15 @@ case $1 in
     add)
         add_service "${@:2}";;
     up)
-        up_service ;;
+        up_service "${@:2}";;
     restart)
-        restart_service;;
+        restart_service "${@:2}";;
     down)
         down_api_service "${@:2}";;
     logs)
-        logs_service;;
+        logs_service "${@:2}";;
+    set)
+        set_allow_origin "${@:2}";;
     help)
         print_help;;
     *)
