@@ -14,6 +14,7 @@ services:
   
   nats:
     image: nats
+    restart: always
     networks: 
       api_net:
         ipv4_address: ${nats_ip}
